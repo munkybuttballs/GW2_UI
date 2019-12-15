@@ -40,7 +40,7 @@ local STATS_ICONS ={
     AVOIDANCE = {x =4 , y = 1},
     --DODGE needs icon
     DODGE = {x = 3, y = 3},
-    BLOCK = {x = 4, y = 3},
+    DEFENSE = {x = 4, y = 3},
     PARRY = {x = 1, y = 1},
     MOVESPEED = {x = 3, y = 2},
     ATTACKRATING = {x = 4, y = 5},
@@ -107,13 +107,19 @@ function gwPaperDollUpdateUnitData()
     local id, name, description, icon, background, role = GW.api.GetSpecializationInfo(spec, nil, nil, nil, UnitSex("player"))
     local unitLevel = UnitLevel("player")
     GW.SetClassIcon(GwDressingRoom.classIcon, classIndex)
-    GwDressingRoom.classIcon:SetVertexColor(GW.CLASS_COLORS_RAIDFRAME[classIndex].r,GW.CLASS_COLORS_RAIDFRAME[classIndex].g,GW.CLASS_COLORS_RAIDFRAME[classIndex].b)
+    local r, g, b, a
+        if GW.GetSetting("BLIZZARDCLASSCOLOR_ENABLED") then
+            r, g, b, a = GetClassColor(englishClass)
+        else
+            r, g, b, a = GW.CLASS_COLORS_RAIDFRAME[classIndex].r, GW.CLASS_COLORS_RAIDFRAME[classIndex].g, GW.CLASS_COLORS_RAIDFRAME[classIndex].b, 1
+        end
+    GwDressingRoom.classIcon:SetVertexColor(r, g, b, a)
 
 	if name ~= nil then
 		local data = GUILD_RECRUITMENT_LEVEL .. " " .. unitLevel .. " " .. name .. " " .. localizedClass
         GwDressingRoom.characterData:SetText(data)
     else
-        GwDressingRoom.characterData:SetText(GUILD_RECRUITMENT_LEVEL .. " " .. unitLevel .. " " ..localizedClass)
+        GwDressingRoom.characterData:SetFormattedText(PLAYER_LEVEL, unitLevel, UnitRace("player"), localizedClass)
 	end
 end
 
@@ -220,7 +226,7 @@ local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y
     gwPaperDollSetStatIcon(statFrame, stat)
 
     statFrame:SetPoint("TOPLEFT", 5 + x, -35 + -y)
-    grid, x, y =statGridPos(grid, x, y)
+    grid, x, y = statGridPos(grid, x, y)
     return grid, x, y, index + 1
 end
 local function setPetStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y)
@@ -232,12 +238,13 @@ local function setPetStatFrame(stat, index, statText, tooltip, tooltip2, grid, x
     gwPaperDollSetStatIcon(statFrame, stat)
 
     statFrame:SetPoint("TOPLEFT", 5 + x, -35 + -y)
-    grid, x, y =statGridPos(grid, x, y)
+    grid, x, y = statGridPos(grid, x, y)
     return grid, x, y, index + 1
 end
 
 function gwPaperDollUpdateStats()
     local level = UnitLevel("player")
+    local _, _, classIndex = UnitClass("player")
 	local categoryYOffset = -5
 	local statYOffset = 0
     local avgItemLevel, avgItemLevelEquipped = GW.api.GetAverageItemLevel()
@@ -272,6 +279,12 @@ function gwPaperDollUpdateStats()
     statText, tooltip1, tooltip2 = GW.stats.getArmor()
     grid, x, y, numShownStats = setStatFrame("ARMOR", numShownStats, statText, tooltip1, tooltip2, grid, x, y)
 
+    -- Defense only for Tanksclasses
+    if classIndex == 1 or classIndex == 2 or classIndex == 11 then
+        statText, tooltip1, tooltip2 = GW.stats.getDefense()
+        grid, x, y, numShownStats = setStatFrame("DEFENSE", numShownStats, statText, tooltip1, tooltip2, grid, x, y)
+    end
+
     --getAttackBothHands
     statText, tooltip1, tooltip2 = GW.stats.getAttackBothHands()
     grid, x, y, numShownStats = setStatFrame("ATTACKRATING", numShownStats, statText, tooltip1, tooltip2, grid, x, y)
@@ -303,56 +316,67 @@ function gwPaperDollUpdateStats()
         grid, x, y, numShownStats = setStatFrame("RANGEDATTACKPOWER", numShownStats, statText, tooltip1, tooltip2, grid, x, y)
     end
 
-    --resitance
+    --resitance 
     for resistanceIndex = 1, 5 do
         statName, statText, tooltip1, tooltip2 = GW.stats.getResitance(resistanceIndex)
         grid, x, y, numShownStats = setStatFrame(GW.stats.RESITANCE_STATS[resistanceIndex], numShownStats, statText, tooltip1, tooltip2, grid, x, y)
     end
+end
 
-    --extra Stats in tooltip
-    GwAttributeInvisibleFrame.tooltip = HIGHLIGHT_FONT_COLOR_CODE .. DEFENSE .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. BLOCK_CHANCE .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetBlockChance()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. PARRY_CHANCE .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetParryChance()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. DODGE_CHANCE .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetDodgeChance()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    
+function GWshowExtendedAttributes(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                        
+    GameTooltip:SetText(HIGHLIGHT_FONT_COLOR_CODE .. PET_BATTLE_STATS_LABEL .. FONT_COLOR_CODE_CLOSE)
+
+    GameTooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE .. DEFENSE .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine(BLOCK_CHANCE .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetBlockChance()) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine(PARRY_CHANCE .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetParryChance()) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine(DODGE_CHANCE .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetDodgeChance()) .."%" .. FONT_COLOR_CODE_CLOSE)
+
     if UnitPowerType("player") == 0 then
-        GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "\n" .. HIGHLIGHT_FONT_COLOR_CODE .. MANA_REGEN .. FONT_COLOR_CODE_CLOSE .. "\n"
-        GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "MP5 (Casting): " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", select(2, GetManaRegen())) .. FONT_COLOR_CODE_CLOSE .. "\n"
-        GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "MP5 (Not Casting): " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetManaRegen()) .. FONT_COLOR_CODE_CLOSE .. "\n"
-        GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "MP5: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetPowerRegen()) .. FONT_COLOR_CODE_CLOSE .. "\n"
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE .. MANA_REGEN .. FONT_COLOR_CODE_CLOSE)
+        GameTooltip:AddDoubleLine("MP5 (Casting): ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", select(2, GetManaRegen())) .. FONT_COLOR_CODE_CLOSE)
+        GameTooltip:AddDoubleLine("MP5 (Not Casting): ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetManaRegen()) .. FONT_COLOR_CODE_CLOSE)
+        GameTooltip:AddDoubleLine("MP5: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetPowerRegen()) .. FONT_COLOR_CODE_CLOSE)
     
     end
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "\n" .. HIGHLIGHT_FONT_COLOR_CODE .. MELEE .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. ITEM_MOD_HIT_MELEE_RATING_SHORT .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetHitModifier()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. MELEE_CRIT_CHANCE .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetCritChance()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE .. MELEE .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine(ITEM_MOD_HIT_MELEE_RATING_SHORT .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetHitModifier()) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine(MELEE_CRIT_CHANCE .. ": ",  HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetCritChance()) .."%" .. FONT_COLOR_CODE_CLOSE)
     
     if hasRanged then
-        GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "\n" .. HIGHLIGHT_FONT_COLOR_CODE .. RANGED .. FONT_COLOR_CODE_CLOSE .. "\n"
-        GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. ITEM_MOD_HIT_RANGED_RATING_SHORT .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetHitModifier()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-        GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. RANGED_CRIT_CHANCE .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetRangedCritChance()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE .. RANGED .. FONT_COLOR_CODE_CLOSE)
+        GameTooltip:AddDoubleLine(ITEM_MOD_HIT_RANGED_RATING_SHORT .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetHitModifier()) .."%" .. FONT_COLOR_CODE_CLOSE)
+        GameTooltip:AddDoubleLine(RANGED_CRIT_CHANCE .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetRangedCritChance()) .."%" .. FONT_COLOR_CODE_CLOSE)
     end
 
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "\n" .. HIGHLIGHT_FONT_COLOR_CODE .. STAT_CATEGORY_SPELL .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. ITEM_MOD_HIT_SPELL_RATING_SHORT .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellHitModifier()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. SPELL_CRIT_CHANCE .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance()) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE .. STAT_CATEGORY_SPELL .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine(ITEM_MOD_HIT_SPELL_RATING_SHORT .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellHitModifier()) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine(SPELL_CRIT_CHANCE .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance()) .."%" .. FONT_COLOR_CODE_CLOSE)
 
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "\n" .. HIGHLIGHT_FONT_COLOR_CODE .. SPELL_BONUS .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. BONUS_HEALING .. ": " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusHealing()) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Shadow Damage: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(6)) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Shadow Crit: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(6)) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Holy Damage: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(2)) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Holy Crit: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(2)) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Fire Damage: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(3)) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Fire Crit: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(3)) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Frost Damage: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(5)) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Frost Crit: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(5)) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Arcane Damage: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(7)) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Arcane Crit: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(7)) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Nature Damage: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(4)) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Nature Crit: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(4)) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Physical Damage: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(1)) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    GwAttributeInvisibleFrame.tooltip = GwAttributeInvisibleFrame.tooltip .. "Physical Crit: " .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(1)) .."%" .. FONT_COLOR_CODE_CLOSE .. "\n"
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine(HIGHLIGHT_FONT_COLOR_CODE .. SPELL_BONUS .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine(BONUS_HEALING .. ": ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusHealing()) .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Shadow Damage: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(6)) .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Shadow Crit: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(6)) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Holy Damage: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(2)) .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Holy Crit: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(2)) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Fire Damage: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(3)) .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Fire Crit: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(3)) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Frost Damage: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(5)) .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Frost Crit: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(5)) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Arcane Damage: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(7)) .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Arcane Crit: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(7)) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Nature Damage: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(4)) .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Nature Crit: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(4)) .."%" .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Physical Damage: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellBonusDamage(1)) .. FONT_COLOR_CODE_CLOSE)
+    GameTooltip:AddDoubleLine("Physical Crit: ", HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", GetSpellCritChance(1)) .."%" .. FONT_COLOR_CODE_CLOSE)
 
+    GameTooltip:Show()
 end
 
 function gwPaperDollUpdatePetStats()
@@ -1103,15 +1127,180 @@ function GWupdateSkills()
     end
     GwPaperSkills.scroll.slider.thumb:SetHeight((GwPaperSkills.scroll:GetHeight()/totlaHeight) * GwPaperSkills.scroll.slider:GetHeight() )
     GwPaperSkills.scroll.slider:SetMinMaxValues (0,math.max(0,totlaHeight - GwPaperSkills.scroll:GetHeight()))
+end
 
+function LoadHonorTab()
+    for i = 1, 6 do
+        local slot = CreateFrame("Frame", "GwPaperHonorDetails" .. i, GwPaperHonor, "GwHonorInfoRow")
+        slot:SetFrameLevel(3)
+        GwPaperHonor.buttons[i] = slot
+        if i == 1 then
+            slot:SetPoint("TOPLEFT")
+        else
+            slot:SetPoint("TOPLEFT", GwPaperHonor.buttons[i -1], "BOTTOMLEFT")
+        end
+        slot:SetWidth(GwPaperHonor:GetWidth() - 12)
+        slot.Header:SetFont(DAMAGE_TEXT_FONT, 18)
+        if i == 1 then
+            GWHonorFrameProgressBar:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameProgressBar:Show()
+            slot.Header:SetPoint("TOPLEFT", GwPaperHonor, "TOPLEFT" , 22, -15)
+        elseif i == 2 then
+            slot.Header:SetText(HONOR_THIS_SESSION)
+            local HKC = CreateFrame("Frame", "GWHonorFrameCurrentHK", GwPaperHonor, "HonorFrameHKButtonTemplate")
+            HKC:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -25)
+            HKC:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameCurrentHKValue:SetPoint("RIGHT")
+            GWHonorFrameCurrentHKText:SetFont(GWHonorFrameCurrentHKText:GetFont(), 14)
+            GWHonorFrameCurrentHKValue:SetFont(GWHonorFrameCurrentHKValue:GetFont(), 14)
+        
+            local DKC = CreateFrame("Frame", "GWHonorFrameCurrentDK", GwPaperHonor, "HonorFrameDKButtonTemplate")
+            DKC:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -45)
+            DKC:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameCurrentDKValue:SetPoint("RIGHT")
+            GWHonorFrameCurrentDKText:SetFont(GWHonorFrameCurrentDKText:GetFont(), 14)
+            GWHonorFrameCurrentDKValue:SetFont(GWHonorFrameCurrentHKValue:GetFont(), 14)
+        elseif i == 3 then
+            slot.Header:SetText(HONOR_YESTERDAY)
+            local HKY = CreateFrame("Frame", "GWHonorFrameYesterdayHK", GwPaperHonor, "HonorFrameHKButtonTemplate")
+            HKY:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -25)
+            HKY:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameYesterdayHKValue:SetPoint("RIGHT")
+            GWHonorFrameYesterdayHKText:SetFont(GWHonorFrameYesterdayHKText:GetFont(), 14)
+            GWHonorFrameYesterdayHKValue:SetFont(GWHonorFrameYesterdayHKValue:GetFont(), 14)
+            
+            local DKY = CreateFrame("Frame", "GWHonorFrameYesterdayContribution", GwPaperHonor, "HonorFrameContributionButtonTemplate")
+            DKY:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -45)
+            DKY:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameYesterdayContributionValue:SetPoint("RIGHT")
+            GWHonorFrameYesterdayContributionText:SetFont(GWHonorFrameYesterdayContributionText:GetFont(), 14)
+            GWHonorFrameYesterdayContributionValue:SetFont(GWHonorFrameYesterdayContributionValue:GetFont(), 14)
+        elseif i == 4 then
+            slot.Header:SetText(HONOR_THISWEEK)
+            local HKTW = CreateFrame("Frame", "GWHonorFrameThisWeekHK", GwPaperHonor, "HonorFrameHKButtonTemplate")
+            HKTW:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -25)
+            HKTW:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameThisWeekHKValue:SetPoint("RIGHT")
+            GWHonorFrameThisWeekHKText:SetFont(GWHonorFrameThisWeekHKText:GetFont(), 14)
+            GWHonorFrameThisWeekHKValue:SetFont(GWHonorFrameThisWeekHKValue:GetFont(), 14)
+            
+            local DKTW = CreateFrame("Frame", "GWHonorFrameThisWeekContribution", GwPaperHonor, "HonorFrameContributionButtonTemplate")
+            DKTW:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -45)
+            DKTW:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameThisWeekContributionValue:SetPoint("RIGHT")
+            GWHonorFrameThisWeekContributionText:SetFont(GWHonorFrameThisWeekContributionText:GetFont(), 14)
+            GWHonorFrameThisWeekContributionValue:SetFont(GWHonorFrameThisWeekContributionValue:GetFont(), 14)
+        elseif i == 5 then
+            slot.Header:SetText(HONOR_LASTWEEK)
+            local HKLW = CreateFrame("Frame", "GWHonorFrameLastWeekHK", GwPaperHonor, "HonorFrameHKButtonTemplate")
+            HKLW:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -25)
+            HKLW:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameLastWeekHKValue:SetPoint("RIGHT")
+            GWHonorFrameLastWeekHKText:SetFont(GWHonorFrameLastWeekHKText:GetFont(), 14)
+            GWHonorFrameLastWeekHKValue:SetFont(GWHonorFrameLastWeekHKValue:GetFont(), 14)
 
+            local DKLW = CreateFrame("Frame", "GWHonorFrameLastWeekContribution", GwPaperHonor, "HonorFrameContributionButtonTemplate")
+            DKLW:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -45)
+            DKLW:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameLastWeekContributionValue:SetPoint("RIGHT")
+            GWHonorFrameLastWeekContributionText:SetFont(GWHonorFrameLastWeekContributionText:GetFont(), 14)
+            GWHonorFrameLastWeekContributionValue:SetFont(GWHonorFrameLastWeekContributionValue:GetFont(), 14)
 
-    --[[
-    GwSpellbookUnknown.slider.thumb:SetHeight((GwSpellbookUnknown.container:GetHeight()/h) * GwSpellbookUnknown.slider:GetHeight() )
-    GwSpellbookUnknown.slider:SetMinMaxValues(0, math.max(0,h - GwSpellbookUnknown.container:GetHeight()))
-    GwSpellbookUnknown.slider:SetValue(0)
-    ]]
+            local DKLWS = CreateFrame("Frame", "GWHonorFrameLastWeekStanding", GwPaperHonor, "HonorFrameStandingButtonTemplate")
+            DKLWS:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -65)
+            DKLWS:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameLastWeekStandingValue:SetPoint("RIGHT")
+            GWHonorFrameLastWeekStandingText:SetFont(GWHonorFrameLastWeekStandingText:GetFont(), 14)
+            GWHonorFrameLastWeekStandingValue:SetFont(GWHonorFrameLastWeekStandingValue:GetFont(), 14)
+        elseif i == 6 then
+            slot.Header:SetText(HONOR_LIFETIME)
+            local HKLT = CreateFrame("Frame", "GWHonorFrameLifeTimeHK", GwPaperHonor, "HonorFrameHKButtonTemplate")
+            HKLT:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -25)
+            HKLT:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameLifeTimeHKValue:SetPoint("RIGHT")
+            GWHonorFrameLifeTimeHKText:SetFont(GWHonorFrameLifeTimeHKText:GetFont(), 14)
+            GWHonorFrameLifeTimeHKValue:SetFont(GWHonorFrameLifeTimeHKValue:GetFont(), 14)
+            
+            local DKLT = CreateFrame("Frame", "GWHonorFrameLifeTimeDK", GwPaperHonor, "HonorFrameDKButtonTemplate")
+            DKLT:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -45)
+            DKLT:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameLifeTimeDKValue:SetPoint("RIGHT")
+            GWHonorFrameLifeTimeDKText:SetFont(GWHonorFrameLifeTimeDKText:GetFont(), 14)
+            GWHonorFrameLifeTimeDKValue:SetFont(GWHonorFrameLifeTimeDKValue:GetFont(), 14)
 
+            local LTR = CreateFrame("Frame", "GWHonorFrameLifeTimeRank", GwPaperHonor, "HonorFrameRankButtonTemplate")
+            LTR:SetPoint("TOPLEFT", slot.Header, "TOPLEFT", 15, -65)
+            LTR:SetWidth(slot:GetWidth() - 30)
+            GWHonorFrameLifeTimeRankValue:SetPoint("RIGHT")
+            GWHonorFrameLifeTimeRankText:SetFont(GWHonorFrameLifeTimeRankText:GetFont(), 14)
+            GWHonorFrameLifeTimeRankValue:SetFont(GWHonorFrameLifeTimeRankValue:GetFont(), 14)
+        end
+    end
+end
+
+function UpdateHonorTab(updateAll)
+    local slot = GwPaperHonor.buttons[1]
+    local hk, dk, contribution, rank, highestRank, rankName, rankNumber
+    -- This only gets set on player entering the world
+    if updateAll then
+		-- Yesterday's values
+		hk, dk, contribution = GetPVPYesterdayStats()
+		GWHonorFrameYesterdayHKValue:SetText(hk)
+		GWHonorFrameYesterdayContributionValue:SetText(contribution)
+		-- This Week's values
+		hk, contribution = GetPVPThisWeekStats()
+		GWHonorFrameThisWeekHKValue:SetText(hk)
+		GWHonorFrameThisWeekContributionValue:SetText(contribution)
+		-- Last Week's values
+		hk, dk, contribution, rank = GetPVPLastWeekStats()
+		GWHonorFrameLastWeekHKValue:SetText(hk)
+		GWHonorFrameLastWeekContributionValue:SetText(contribution)
+		GWHonorFrameLastWeekStandingValue:SetText(rank)
+    end
+    
+	-- This session's values
+    hk, dk = GetPVPSessionStats()
+	GWHonorFrameCurrentHKValue:SetText(hk)
+    GWHonorFrameCurrentDKValue:SetText(dk)
+    
+    -- Lifetime stats
+	hk, dk, highestRank = GetPVPLifetimeStats()
+	GWHonorFrameLifeTimeHKValue:SetText(hk)
+	GWHonorFrameLifeTimeDKValue:SetText(dk)
+	rankName, rankNumber = GetPVPRankInfo(highestRank)
+	if not rankName then
+		rankName = NONE
+	end
+    GWHonorFrameLifeTimeRankValue:SetText(rankName)
+    
+    -- Set rank name and number
+	rankName, rankNumber = GetPVPRankInfo(UnitPVPRank("player"))
+	if not rankName then
+		rankName = NONE
+    end
+	slot.Header:SetText(rankName)
+    slot.Rank:SetText("("..RANK.." "..rankNumber..")")
+
+    -- Set icon
+	if rankNumber > 0 then
+		GWHonorFramePvPIcon:SetTexture(format("%s%02d","Interface\\PvPRankBadges\\PvPRank", rankNumber))
+        GWHonorFramePvPIcon:Show()
+        slot.Header:SetPoint("TOPLEFT", GwPaperHonor, "TOPLEFT" , 50, -15)
+    else
+		GWHonorFramePvPIcon:Hide()
+    end
+
+    -- Set rank progress and bar color
+	local factionGroup, factionName = UnitFactionGroup("player")
+	if factionGroup == "Alliance" then
+		GWHonorFrameProgressBar:SetStatusBarColor(0.05, 0.15, 0.36)
+	else
+		GWHonorFrameProgressBar:SetStatusBarColor(0.63, 0.09, 0.09)
+    end
+	GWHonorFrameProgressBar:SetValue(GetPVPRankProgress())
+
+    -- Recenter rank text
+	slot.Header:SetPoint("TOP", "GwPaperHonor", "TOP", - slot.Rank:GetWidth() / 2 + 20, -83)
 end
 
 local CHARACTER_PANEL_OPEN = ""
@@ -1139,6 +1328,11 @@ function GwToggleCharacter(tab, onlyShow)
                 GwCharacterWindow:SetAttribute("keytoggle", true)
             end
             GwCharacterWindow:SetAttribute("windowpanelopen", "paperdollskills")
+        elseif tab == "HonorFrame" then
+            if not onlyShow then
+                GwCharacterWindow:SetAttribute("keytoggle", true)
+            end
+            GwCharacterWindow:SetAttribute("windowpanelopen", "paperdollhonor")
         elseif tab == "PetPaperDollFrame" then
             if not onlyShow then
                 GwCharacterWindow:SetAttribute("keytoggle", true)
@@ -1170,6 +1364,7 @@ local function LoadPaperDoll()
     CreateFrame("Button", "GwDressingRoom", GwCharacterWindowContainer, "GwDressingRoom")
     CreateFrame("Frame", "GwCharacterMenu", GwCharacterWindowContainer, "GwCharacterMenu")
     CreateFrame("Frame", "GwPaperReputation", GwCharacterWindowContainer, "GwPaperReputation")
+    CreateFrame("Frame", "GwPaperHonor", GwCharacterWindowContainer, "GwPaperHonor")
     CreateFrame("Frame", "GwPaperSkills", GwCharacterWindowContainer, "GwPaperSkills")
 
     --Legacy pet window
@@ -1203,6 +1398,9 @@ local function LoadPaperDoll()
     gwPaperDollUpdateStats()
     gwPaperDollUpdatePetStats()
     GwUpdateReputationDetails()
+
+    GwPaperHonor.buttons = {}
+    LoadHonorTab()
 
     StaticPopupDialogs["UNEQUIP_LEGENDARY"] = {
         text = GwLocalization["UNEQUIP_LEGENDARY"],

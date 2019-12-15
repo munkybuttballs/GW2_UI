@@ -9,7 +9,7 @@ local IsFrameModified = GW.IsFrameModified
 local Debug = GW.Debug
 local LibSharedMedia = LibStub("LibSharedMedia-3.0", true)
 
-GW.VERSION_STRING = 'GW2_UI_Classic v1.4.0'
+GW.VERSION_STRING = 'GW2_UI_Classic v1.6.7'
 
 local loaded = false
 local hudScale = 1
@@ -567,9 +567,6 @@ local function loadAddon(self)
         DEFAULT_CHAT_FRAME:AddMessage("|cFFFFB900<GW2_UI>|r Pixel Perfection-Mode enabled. UIScale down to perfect pixel size. Can be deactivated in HUD settings. |cFF00FF00/gw2|r")
     end
 
-    -- setup our frame pool
-    GW.Pools = CreatePoolCollection()
-
     -- disable Move Anything bag handling
     disableMABags()
 
@@ -582,7 +579,6 @@ local function loadAddon(self)
     if dev_dbg_tab and dev_dbg_tab > 0 and _G["ChatFrame" .. dev_dbg_tab] then
         DEFAULT_CHAT_FRAME:AddMessage("hooking Debug to chat tab #" .. dev_dbg_tab)
         GW.dbgTab = dev_dbg_tab
-        GW.AlertTestsSetup()
         GW.inDebug = true
     else
         GW.inDebug = false
@@ -687,13 +683,8 @@ local function loadAddon(self)
     end
 
     if GetSetting("BAGS_ENABLED") then
-        GW.LoadBag()
-        GW.LoadBank()
+        GW.LoadInventory()
         GW.SkinLooTFrame()
-    end
-
-    if GetSetting("USE_BATTLEGROUND_HUD") then
-        --GW.LoadBattlegrounds()
     end
 
     GW.LoadBreathMeter()
@@ -768,8 +759,6 @@ local function loadAddon(self)
     if (forcedMABags) then
         GW.Notice(GwLocalization["DISABLED_MA_BAGS"])
     end
-
-    --GW.LoadChatBubbles()
 
     --Add Shared Media
     --Font

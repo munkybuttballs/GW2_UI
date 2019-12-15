@@ -357,38 +357,20 @@ GW.UpdateHealthTextString = updateHealthTextString
 GW.AddForProfiling("unitframes", "updateHealthTextString", updateHealthTextString)
 
 local function updateHealthbarColor(self)
-    local frame = self
-    if frame.classColor == true and UnitIsPlayer(frame.unit) then
-        local red, green, blue, _ = GetClassColour(frame.unit)
+    if self.classColor == true and UnitIsPlayer(self.unit) then
+        local _, classFilename, classIndex = UnitClass(self.unit)
+        local r, g, b, a
+        if GetSetting("BLIZZARDCLASSCOLOR_ENABLED") then
+            r, g, b, a = GetClassColor(classFilename)
+        else
+            r, g, b, a = CLASS_COLORS_RAIDFRAME[classIndex].r, CLASS_COLORS_RAIDFRAME[classIndex].g, CLASS_COLORS_RAIDFRAME[classIndex].b, 1
+        end
+        self.healthbar:SetVertexColor(r, g, b, a)
+        self.healthbarSpark:SetVertexColor(r, g, b, a)
+        self.healthbarFlash:SetVertexColor(r, g, b, a)
+        self.healthbarFlashSpark:SetVertexColor(r, g, b, a)
 
-        frame.healthbar:SetVertexColor(
-            red,
-            green,
-            blue
-        )
-        frame.healthbarSpark:SetVertexColor(
-            red,
-            green,
-            blue
-        )
-        frame.healthbarFlash:SetVertexColor(
-            red,
-            green,
-            blue
-        )
-        frame.healthbarFlashSpark:SetVertexColor(
-            red,
-            green,
-            blue
-        )
-        frame.nameString:SetTextColor(
-            red,
-            green,
-            blue
-        )
-
-        --local r, g, b, _ = frame.nameString:GetTextColor()
-        --frame.nameString:SetTextColor(r + 0.3, g + 0.3, b + 0.3, 1)
+        self.nameString:SetTextColor(r + 0.3, g + 0.3, b + 0.3, a)
     else
         local isFriend = UnitIsFriend("player", frame.unit)
         local friendlyColor = COLOR_FRIENDLY[1]
@@ -407,9 +389,9 @@ local function updateHealthbarColor(self)
         frame.nameString:SetTextColor(friendlyColor.r, friendlyColor.g, friendlyColor.b, 1)
     end
 
-    if (UnitLevel(frame.unit) - UnitLevel("player")) <= -5 then
-        local r, g, b, _ = frame.nameString:GetTextColor()
-        frame.nameString:SetTextColor(r + 0.5, g + 0.5, b + 0.5, 1)
+    if (UnitLevel(self.unit) - UnitLevel("player")) <= -5 and not UnitIsPlayer(self.unit) then
+        local r, g, b, _ = self.nameString:GetTextColor()
+        self.nameString:SetTextColor(r + 0.5, g + 0.5, b + 0.5, 1)
     end
 end
 GW.AddForProfiling("unitframes", "updateHealthbarColor", updateHealthbarColor)
@@ -791,6 +773,7 @@ local function UpdateBuffLayout(self, event, anchorPos)
     local smallSize
     local bigSize
     local maxSize
+    local counterBuffs = 0
 
     if isPlayer then
         maxSize = self:GetWidth()
@@ -854,6 +837,8 @@ local function UpdateBuffLayout(self, event, anchorPos)
         if setBuffData(frame, list, index) then
             if frameIndex <= 40 then
                 isBuff = true
+            elseif frameIndex > 40 and not isPlayer then
+                counterBuffs = counterBuffs + 1
             end
             if not frame:IsShown() then
                 frame:Show()
@@ -891,7 +876,12 @@ local function UpdateBuffLayout(self, event, anchorPos)
             end
 
             usedWidth = usedWidth + size + marginX
-            if maxSize < usedWidth then
+            if frameIndex > 40 and not isPlayer and counterBuffs == 8 then
+                counterBuffs = 0
+                usedWidth = 0
+                usedHeight = usedHeight + lineSize + marginY
+                lineSize = smallSize
+            elseif maxSize < usedWidth then
                 usedWidth = 0
                 usedHeight = usedHeight + lineSize + marginY
                 lineSize = smallSize

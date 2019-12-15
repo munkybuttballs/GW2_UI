@@ -1,3 +1,37 @@
+1.6.7
+- Redo Inventory to work with the keyring
+
+1.6.6
+- Fix a bug in bankframes
+
+1.6.5
+- Added Keyring
+
+1.6.4
+- Update libs
+- Error if acception an PvP invite: Workaround: If the invite pops up type /reload then you can accept the invite
+- Added BG queue icon
+
+1.6.3
+- Fix lua error for druids
+
+1.6.2
+- Added Questtarget to the Immersive dialoge (At the End)
+- Changed Bag and Bank min sizing
+- Changed target debuffs to 8 per row
+- Added option under Skins 'Use Blizzard Class Colors'
+- Added Defense stat for Warrior, Druid and Paladin
+
+1.6.1
+- Update libs
+
+1.6.0
+- Added Honortab
+
+1.5.0
+- Fix chatframe moving and resizing error
+- Update libs
+
 1.4.0
 - Added advanced char stats (hover over the 'Attribute'-label)
 - Change lib from LibClassicHealComm-1.0 to LibHealComm-4.0

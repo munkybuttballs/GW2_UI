@@ -90,7 +90,7 @@ GW_CHANGELOGS = "- Added HealPrediction for Raidframes: Used libHealComm - Works
 GW_CHANGELOGS = "- Added Character Panel\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Added Talent Panel\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Added Spellbook\n" .. GW_CHANGELOGS
-GW_CHANGELOGS = "1.0.0\n\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.0.0\n\n" .. GW_CHANGELOGS
 
 --VERSION 1.1.0
 GW_CHANGELOGS = "- Tooltip now anchor to the bottom right of the Tooltip mover frame\n" .. GW_CHANGELOGS
@@ -99,32 +99,75 @@ GW_CHANGELOGS = "- Added custom loot frame\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Added custom staticpopup\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Added Pet diet info\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Update libs\n" .. GW_CHANGELOGS
-GW_CHANGELOGS = "1.1.0\n\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.1.0\n\n" .. GW_CHANGELOGS
 
 --VERSION 1.2.0
 GW_CHANGELOGS = "- Added custom UIDropDownMenu\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Added repu background for Wildhammer Clan\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Change range indicator for Multibars\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Make XP-Bar as a module\n" .. GW_CHANGELOGS
-GW_CHANGELOGS = "1.2.0\n\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.2.0\n\n" .. GW_CHANGELOGS
 
 --VERSION 1.2.1
 GW_CHANGELOGS = "- Update libs\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Fix a position error with the MultiBarBottomRight\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Fix a tooltip error with resistence tooltips\n" .. GW_CHANGELOGS
-GW_CHANGELOGS = "1.2.1\n\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.2.1\n\n" .. GW_CHANGELOGS
 
 --VERSION 1.3.0
 GW_CHANGELOGS = "- Make lootframe moveable (if not hooked under mouse)\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Added a 'Skin'-Tab into settings\n" .. GW_CHANGELOGS
-GW_CHANGELOGS = "1.3.0\n\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.3.0\n\n" .. GW_CHANGELOGS
 
 --VERSION 1.4.0
 GW_CHANGELOGS = "- Change lib from LibClassicHealComm-1.0 to LibHealComm-4.0\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Added pet level to pet frame\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Update libs\n" .. GW_CHANGELOGS
 GW_CHANGELOGS = "- Added advanced char stats (hover over the 'Attribute'-label)\n" .. GW_CHANGELOGS
-GW_CHANGELOGS = "1.4.0\n\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.4.0\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.5.0
+GW_CHANGELOGS = "- Fix chatframe moving and resizing error\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "- Update libs\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.5.0\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.6.0
+GW_CHANGELOGS = "- Added Honortab\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.6.0\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.6.1
+GW_CHANGELOGS = "- Update libs\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.6.1\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.6.2
+GW_CHANGELOGS = "- Added Questtarget to the Immersive dialouge (At the End)\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "- Changed Bag and Bank min sizing\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "- Changed target debuffs to 8 per row\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "- Added option under Skins 'Use Blizzard Class Colors'\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "- Added Defense stat for Warrior, Druid and Paladin\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.6.2\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.6.3
+GW_CHANGELOGS = "- Fix lua error for druids\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.6.3\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.6.4
+GW_CHANGELOGS = "- Update libs\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "- Error if acception an PvP invite: Workaround: If the invite pops up type /reload then you can accept the invite\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "- Added BG queue icon\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.6.4\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.6.5
+GW_CHANGELOGS = "- Added Keyring\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.6.5\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.6.6
+GW_CHANGELOGS = "- Fix a bug in bankframes\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.6.6\n\n" .. GW_CHANGELOGS
+
+--VERSION 1.6.7
+GW_CHANGELOGS = "- Redo Inventory to work with the keyring\n" .. GW_CHANGELOGS
+GW_CHANGELOGS = "\n\n1.6.6\n\n" .. GW_CHANGELOGS
+
 
 GW.GW_CHANGELOGS = GW_CHANGELOGS
-

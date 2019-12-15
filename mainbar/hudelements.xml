@@ -193,8 +193,6 @@
                     </Layer>
                 </Layers>
             </Frame>
-
-
         </Frames>
     </Button>
 
@@ -343,7 +341,6 @@
         <Layers>
             <Layer level="BACKGROUND">
                 <Texture name="$parentBackground" file="Interface\AddOns\GW2_UI\textures\gwstatusbar-bg">
-
                     <Size x="291" y="20"></Size>
                 </Texture>
             </Layer>
