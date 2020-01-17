@@ -357,20 +357,21 @@ GW.UpdateHealthTextString = updateHealthTextString
 GW.AddForProfiling("unitframes", "updateHealthTextString", updateHealthTextString)
 
 local function updateHealthbarColor(self)
-    if self.classColor == true and UnitIsPlayer(self.unit) then
-        local _, classFilename, classIndex = UnitClass(self.unit)
+    frame = self
+    if frame.classColor == true and UnitIsPlayer(frame.unit) then
+        local _, classFilename, classIndex = UnitClass(frame.unit)
         local r, g, b, a
         if GetSetting("BLIZZARDCLASSCOLOR_ENABLED") then
             r, g, b, a = GetClassColor(classFilename)
         else
             r, g, b, a = CLASS_COLORS_RAIDFRAME[classIndex].r, CLASS_COLORS_RAIDFRAME[classIndex].g, CLASS_COLORS_RAIDFRAME[classIndex].b, 1
         end
-        self.healthbar:SetVertexColor(r, g, b, a)
-        self.healthbarSpark:SetVertexColor(r, g, b, a)
-        self.healthbarFlash:SetVertexColor(r, g, b, a)
-        self.healthbarFlashSpark:SetVertexColor(r, g, b, a)
+        frame.healthbar:SetVertexColor(r, g, b, a)
+        frame.healthbarSpark:SetVertexColor(r, g, b, a)
+        frame.healthbarFlash:SetVertexColor(r, g, b, a)
+        frame.healthbarFlashSpark:SetVertexColor(r, g, b, a)
 
-        self.nameString:SetTextColor(r + 0.3, g + 0.3, b + 0.3, a)
+        frame.nameString:SetTextColor(r + 0.3, g + 0.3, b + 0.3, a)
     else
         local isFriend = UnitIsFriend("player", frame.unit)
         local friendlyColor = COLOR_FRIENDLY[1]
@@ -389,9 +390,9 @@ local function updateHealthbarColor(self)
         frame.nameString:SetTextColor(friendlyColor.r, friendlyColor.g, friendlyColor.b, 1)
     end
 
-    if (UnitLevel(self.unit) - UnitLevel("player")) <= -5 and not UnitIsPlayer(self.unit) then
-        local r, g, b, _ = self.nameString:GetTextColor()
-        self.nameString:SetTextColor(r + 0.5, g + 0.5, b + 0.5, 1)
+    if (UnitLevel(frame.unit) - UnitLevel("player")) <= -5 and not UnitIsPlayer(frame.unit) then
+        local r, g, b, _ = frame.nameString:GetTextColor()
+        frame.nameString:SetTextColor(r + 0.5, g + 0.5, b + 0.5, 1)
     end
 end
 GW.AddForProfiling("unitframes", "updateHealthbarColor", updateHealthbarColor)
